@@ -2,7 +2,9 @@
 
 [Approov](https://approov.io) is an API security solution used to verify that requests received by your API services originate from trusted versions of your apps.
 
-This quickstart is written specifically for web apps making API calls that you wish to protect with the integration of Google reCAPTCHA V3 into the Approov token.
+This quickstart is written specifically for web apps making API calls that you wish to protect with the integration of Google reCAPTCHA V3 web protection into the Approov token.
+
+The Google reCAPTCHA V3 web protection is not as strong as the [Approov mobile app attestation](https://approov.io/product) service, but the integration within the Approov token enables the same simple backend token check for both the Approov mobile app attestation and Google reCAPTCHA V3 web protection. After checking the Approov token validity its claims can be used to differentiate between requests protected by the Approov mobile app attestation or by the web protection and react differently when that is necessary. For example, depending on the sensitivity of the data being provided by the endpoint.
 
 The quickstart is agnostic of any web framework, because the simple Javascript functions it relies on are easily ported to any web framework.
 
@@ -28,7 +30,7 @@ If you are looking for another Approov integration you can check our list of [qu
 
 ## WHAT YOU WILL NEED
 
-* Access to a trial or paid Approov and be [registered](https://g.co/recaptcha/v3) with Google Recaptcha V3
+* Access to a trial or paid Approov account and be [registered](https://g.co/recaptcha/v3) with Google Recaptcha V3
 * The `approov` command line tool [installed](https://approov.io/docs/latest/approov-installation/) with access to your account
 * A web server or Docker installed.
 * The contents of the folder containing this README
@@ -48,7 +50,7 @@ If you are looking for another Approov integration you can check our list of [qu
 
 ## HOW IT WORKS?
 
-This is a brief overview of how the Approov cloud service and Google reCAPTCHA V3 fit together. For a complete overview of how frontend and backend fit together with the Approov cloud service we recommend to read the [Approov overview](https://approov.io/product) page on our website.
+This is a brief overview of how the Approov cloud service and Google reCAPTCHA V3 fit together. For a complete overview of how frontend and backend fit together with the Approov cloud service we recommend the [Approov overview](https://approov.io/product) page on our website.
 
 ### Google reCAPTCHA V3
 
@@ -57,15 +59,15 @@ Google reCAPTCHA V3 provides a powerful mechanism to tell humans and bots apart.
 Each API request made by the web app is handled such that:
 
 * A reCAPTCHA V3 token is fetched via the included Google reCAPTCHA V3 script
-* An attestation request is made to the Approov cloud service with the reCAPTCHA V3 token
-* The Approov token returned from the Approov attestation request is added as an header to the API request
+* A web protection request is made to the Approov cloud service with the reCAPTCHA V3 token
+* The Approov token returned from the Approov web protection request is added as an header to the API request
 * The API request is made as usual by the web app
 
 The API backend will be the one deciding to allow or deny the action the user initiates from the web app. Never put logic in the web app itself to decide when the user is allowed or not to perform the action, because it can be easily bypassed and then the API will be left vulnerable.
 
 ### Approov Cloud Service
 
-The Approov cloud service attests with the Google reCAPTCHA V3 service the received token is legit, and then the attestation request is handled such that:
+The Approov cloud service checks with the Google reCAPTCHA V3 service that the received reCATPCHA V3 token is valid, and then the web protection request is handled such that:
 
 * If the reCAPTCHA V3 token check passes then a valid Approov token is returned to the web app
 * If the reCAPTCHA V3 token check fails then a legitimate looking Approov token will be returned
@@ -224,7 +226,7 @@ Modify the file `shapes-app/unprotected/index.html` to add the necessary HTML ma
 </div>
 ```
 
-The only changes required are in the `HTML` markup for the `button` tag, where it added the:
+The only changes required are in the `HTML` markup for the `button` tag, where was added the:
 
 * `g-recaptcha` css class to the `class` attribute
 * `data-sitekey` attribute to allow the Google reCAPTCHA script to identify the website
@@ -377,7 +379,7 @@ Assuming that your site key is `aaaaa12345`  and the API key is `bbbbb12345` the
 approov web -recaptcha -add aaaaa12345 -secret bbbbb12345 -embedResult
 ```
 
-We add the `-embedResult` flag only when we want to [have access](https://approov.io/docs/latest/approov-usage-documentation/#approov-embed-token-claim-for-recaptcha) to the full response from the Google reCAPTCHA V3 request lookup made by the Approov web attester to the reCAPTCHA V3 API. In this quickstart we are adding it for debug proposes only.
+We add the `-embedResult` flag only when we want to [have access](https://approov.io/docs/latest/approov-usage-documentation/#approov-embed-token-claim-for-recaptcha) to the full response from the Google reCAPTCHA V3 request lookup made by the Approov web protection server to the reCAPTCHA V3 API. In this quickstart we are adding it for debug proposes only.
 
 ### Replace the Code Placeholders
 
@@ -387,12 +389,23 @@ The code we added for the integration of Google reCAPTCHA v3 with Approov has so
 
 #### reCAPTCHA Site Key
 
-Using the reCAPTCHA site key retrieved from the Google reCAPTCHA admin console we can now replace the `RECAPTCHA_SITE_KEY` directly in the code or with:
+Using the reCAPTCHA site key retrieved from the Google reCAPTCHA admin console we can now replace the `RECAPTCHA_SITE_KEY` directly in the code or from the command line.
+
+On Linux and MACs you can use the `sed` command:
 
 ```text
 sed -i "s|___RECAPTCHA_SITE_KEY___|aaaaa12345|" ./shapes-app/unprotected/index.html
 sed -i "s|___RECAPTCHA_SITE_KEY___|aaaaa12345|" ./shapes-app/unprotected/assets/js/app.js
 ```
+
+On Windows you can do it with:
+
+```text
+get-content shapes-app\unprotected\index.html | %{$_ -replace "___RECAPTCHA_SITE_KEY___","aaaaa12345"}
+get-content shapes-app/unprotected/assets/js/app.js | %{$_ -replace "___RECAPTCHA_SITE_KEY___","aaaaa12345"}
+
+```
+
 > **NOTE:** Replace the dummy reCAPTCHA site key `aaaaa12345` with your own one.
 
 #### Approov Site Key
@@ -416,11 +429,20 @@ reCAPTCHA:
     Embed Result: true
 ```
 
-Replace the placeholder `___APPROOV_SITE_KEY___` directly in the code or just do it with:
+Now, replace the placeholder `___APPROOV_SITE_KEY___` directly in the code or from the command line.
+
+On Linux and MACs you can use the `sed` command:
 
 ```text
 sed -i "s|___APPROOV_SITE_KEY___|123a4567-abcd-12e3-9z8a-9b1234d54321|" ./shapes-app/unprotected/assets/js/app.js
 ```
+
+On Windows you can do it with:
+
+```text
+get-content shapes-app\unprotected\index.html | %{$_ -replace "___APPROOV_SITE_KEY___","123a4567-abcd-12e3-9z8a-9b1234d54321"}
+```
+
 > **NOTE:** Replace the dummy Approov site key `123a4567-abcd-12e3-9z8a-9b1234d54321` with your own one.
 
 [TOC](#toc-table-of-contents)
@@ -449,7 +471,7 @@ This can be due to a lot of different causes, but usually is due to a typo, miss
 
 Open the browser developer tools and check if you can see any errors in the console.
 
-If you find errors related with the `app.js` file then fix them and retry again, but always remember to refresh the browser with `ctrl + F5` when updating Javascript.
+If you find errors related with the `app.js` file then fix them and try again, but always remember to refresh the browser with `ctrl + F5` after updating Javascript files.
 
 ### Google reCAPTCHA Script
 
@@ -508,17 +530,17 @@ approov metrics
 
 This will open a Grafana dashboard in your browser from where you can see detailed metrics.
 
-### Approov Web Attester Errors
+### Approov Web Protection Server Errors
 
-If something is wrong with your Approov integration, that prevents the Approov web attester to complete the attestation, then an error response will be returned.
+If something is wrong with your Google reCAPTCHA V3 integration, that prevents the Approov web protection server to complete the request, then an error response will be returned.
 
-See [here](https://approov.io/docs/latest/approov-usage-documentation/#troubleshooing-web-protection-errors) the complete list of possible errors that can be returned by the Approov web attester.
+See [here](https://approov.io/docs/latest/approov-usage-documentation/#troubleshooting-web-protection-errors) the complete list of possible errors that can be returned by the Approov web protection server.
 
-If the error is not displayed in the web page you may need to open the browser developer tools and inspect the json response payload for the request made to the Approov web attester.
+If the error is not displayed in the web page you may need to open the browser developer tools and inspect the json response payload for the request made to the Approov web protection server.
 
 ### Debug the Approov Token
 
-The Approov CLI allows to check the approov token validity and its claims.
+The Approov CLI can check the approov token validity and display the claims.
 
 Open the browser developers tools and from the network tab grab the Approov token from the request header `Approov-Token` and then check it with:
 
@@ -545,6 +567,8 @@ Example of the `embed` claim present in an Approov token:
   }
 }
 ```
+
+> **NOTE:** The output of the Approov CLI is not formatted as the above one.
 
 [TOC](#toc-table-of-contents)
 
