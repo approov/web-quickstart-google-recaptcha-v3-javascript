@@ -86,6 +86,7 @@ function hideFromScreen() {
   document.getElementById('confused').classList.add("hidden");
   document.getElementById('hello').classList.add("hidden");
   document.getElementById('shape').className = "hidden"
+  document.getElementById('success').className = "hidden"
   document.getElementById('spinner').classList.remove("hidden")
 }
 

@@ -24,7 +24,7 @@ If you are looking for another Approov integration you can check our list of [qu
 * [Running the Shapes Web App with Approov and Google reCAPTCHA V3](#running-the-shapes-web-app-with-approov-and-google-recaptcha-v3)
 * [What if I don't get Shapes](#what-if-i-dont-get-shapes)
 * [Changing your own Web App to use Approov](#changing-your-own-web-app-to-use-approov)
-* [Security Headers](#security-headers)
+* [Content Security Policy](#content-security-policy)
 * [Next Steps](#next-steps)
 
 
@@ -125,9 +125,9 @@ Now visit http://localhost:8000 and you should be able to see:
 
 ## RUNNING THE SHAPES WEB APP WITHOUT APPROOV
 
-Now that you have completed the deployment of your web app with one of your preferred web servers is time to see how it works.
+Now that you have completed the deployment of your web app with one of your preferred web servers it is time to see how it works.
 
-In the home page you can see three buttons, and you should now click in the `UNPROTECTED` button and you should now see the Shapes unprotected web app:
+In the home page you can see three buttons, and you should now click in the `UNPROTECTED` button to see the unprotected Shapes web app":
 
 <p>
   <img src="/readme-images/unprotected-homepage.png" width="480" title="Shapes unprotected web app home page">
@@ -226,24 +226,28 @@ Modify the file `shapes-app/unprotected/index.html` to add the necessary HTML ma
 </div>
 ```
 
-The only changes required are in the `HTML` markup for the `button` tag, where was added the:
+The additions can be summarised as follows:
 
-* `g-recaptcha` css class to the `class` attribute
-* `data-sitekey` attribute to allow the Google reCAPTCHA script to identify the website
-* `data-callback` attribute to let Google reCAPTACHA script know what function to use as the callback to return the reCAPTCHA token.
-* `data-action` attribute to bind the click on the button to be handled by the Google reCAPTCHA script.
+* The `g-recaptcha` css class is required so that the Google reCAPTCHA SDK can identify the target element
+* The `data-sitekey` attribute is used to identify the site subscription to the Google reCAPTCHA servers
+* The `data-callback` attribute registers the callback function to receive the Google reCAPTACHA token
+* The `data-action` attribute registers the action identifier with the Google reCAPTACHA token which can be verified once the token is checked by the API or Approov backend
 
 Now that we have made the Google reCAPTCHA script as the one handling the click events in the `HELLO` and `SHAPE` buttons we need to remove their current listeners for the `click` event in `app.js`. We also named the `fetchHello()` and `fetchShape()` as the callbacks to receive the reCAPTCHA token, therefore we will need to update them in `app.js` to handle the new parameter. The next section will show how to do it.
 
 #### Javascript changes to implement Approov with reCAPTCHA
 
-If you have any doubt during the next steps you can always refer to the `shapes-app/approov-recaptcha-protected/assets/js/app.js` file to compare it with your own changes on the file `shapes-app/unprotected/assets/js/app.js`.
+If you have any doubt during the next steps you can always refer to the `shapes-app/approov-recaptcha-protected/assets/js/app.js` file to compare it with your own changes to the file `shapes-app/unprotected/assets/js/app.js`.
 
 You can easily compare the changes you need to make with this command:
 
 ```text
 git diff --no-index shapes-app/unprotected/assets/js/app.js shapes-app/approov-recaptcha-protected/assets/js/app.js
 ```
+
+As we can see the necessary Javascript code to implement Approov in a web app app is simple and short.
+
+Let's start to implement Google reCAPTCHA V3 with Approov in the Shapes unprotected app...
 
 Modify the file `shapes-app/unprotected/assets/js/app.js` to remove from the `load` event listener the `HELLO` and `SAHPE` buttons click handlers:
 
@@ -295,11 +299,11 @@ function fetchApproovToken(recaptchaToken) {
 // function addRequestHeaders() {...}
 ```
 
-To fetch the Approov token we need the reCAPTCHA token that we receive in the callbacks `fetchHello` and `fetchShape` we configured the Google reCAPTCHA script with, via the HTML markup.
+To fetch an Approov token we need a reCAPTCHA token which is passed as an argument to the fetchHello and fetchShape callbacks.
 
 For example, when the user clicks in the `SHAPE` button the event will be first handled by the the included Google reCAPCTHA script, that will then callback the function `fetchShape(recaptchaToken)` and pass the reCAPTCHA token as its first argument. The reCAPTCHA token needs to be passed further down to `makeApiRequest(path, recaptchaToken)`, that then calls to `addRequestHeaders(recaptchaToken)` that by its turn calls to `fetchApproovToken(recaptchaToken)`.
 
-Modify the file `shapes-app/unprotected/assets/js/app.js` to add the modified code for the functions:
+Edit the file `shapes-app/unprotected/assets/js/app.js` to include the modified code for the following functions:
 
 ```javascript
 function addRequestHeaders(recaptchaToken) {
@@ -347,7 +351,9 @@ function fetchShape(recaptchaToken) {
 }
 ```
 
-So, the amount of changes made are minimal and are mostly due to pass around the `recaptchaToken` until it reaches the `addRequestHeaders(recaptchaToken)`, where it will be used to call `fetchApproovToken(recaptchaToken)` in order to be able to add the `Approov-Token` header with the embedded reCAPTCHA V3 result.
+Note that only minor changes to the handling of the `recaptchaToken` are required. To switch to using an Approov token in the code for your website, we would expect the same small changes at each point you construct requests that include a reCAPTCHA token. Depending on how your API calls are constructed, you may be able to isolate the changes to a single point.
+
+Before you can run the code it's necessary to obtain the values for the placeholders, and you will learn how to in the next section.
 
 [TOC](#toc-table-of-contents)
 
@@ -358,14 +364,11 @@ To use Approov with Google reCAPTCHA V3 in the web app we need a small amount of
 
 ### Configure the API Domain with Web Protection
 
-First, Approov needs to know the API domain that will be protected and have it configured with [web protection](https://approov.io/docs/latest/approov-usage-documentation/#enable-web-protection-for-an-api).
+First, we need to use the Approov CLI to register the API domain that will be protected and have it specifically enabled for [web protection](https://approov.io/docs/latest/approov-usage-documentation/#enable-web-protection-for-an-api). Note that all web-protection domains are also able to serve tokens for the mobile channel. Run the following CLI command to add or update the configuration for the shapes API:
 
-In order for Approov tokens to be generated for `https://shapes.approov.io/v2/shapes` it is necessary to inform Approov about it, and you can do it with:
-
-```
+```text
 approov api -add shapes.approov.io -allowWeb
 ```
-> **NOTE:** When integrating in your own web app you need to replace `shapes.approov.io` with `your.api.domain.com`.
 
 ### Register Google reCAPTCHA V3 with Approov
 
@@ -379,13 +382,11 @@ Assuming that your site key is `aaaaa12345`  and the API key is `bbbbb12345` the
 approov web -recaptcha -add aaaaa12345 -secret bbbbb12345 -embedResult
 ```
 
-We add the `-embedResult` flag only when we want to [have access](https://approov.io/docs/latest/approov-usage-documentation/#approov-embed-token-claim-for-recaptcha) to the full response from the Google reCAPTCHA V3 request lookup made by the Approov web protection server to the reCAPTCHA V3 API. In this quickstart we are adding it for debug proposes only.
+When the Google reCAPTCHA token is passed to an Approov web-protection server for verification it, in turn, calls out to the Google reCAPTCHA servers before performing its checks on the result. When the reCAPTCHA site is registered using the CLI, the -embedResult flag is used to [add](https://approov.io/docs/latest/approov-usage-documentation/#approov-embed-token-claim-for-recaptcha) the full response from Google reCAPTCHA servers in the generated Approov token. In this quickstart we are adding it for information and debug proposes only.
 
 ### Replace the Code Placeholders
 
-The code we added for the integration of Google reCAPTCHA v3 with Approov has some placeholders that we now have values for, therefore we need to replace them.
-
-> **IMPORTANT:** In a production app don't hard-code this values into the code. Instead replace them when the app is deployed.
+The code we added for the integration of Google reCAPTCHA V3 with Approov has some placeholders for which we now have values.
 
 #### reCAPTCHA Site Key
 
@@ -410,7 +411,7 @@ get-content shapes-app/unprotected/assets/js/app.js | %{$_ -replace "___RECAPTCH
 
 #### Approov Site Key
 
-The Approov site key, that can be obtained with:
+The Approov site key can be obtained with the following command:
 
 ```text
 approov web -list
@@ -471,7 +472,7 @@ This can be due to a lot of different causes, but usually is due to a typo, miss
 
 Open the browser developer tools and check if you can see any errors in the console.
 
-If you find errors related with the `app.js` file then fix them and try again, but always remember to refresh the browser with `ctrl + F5` after updating Javascript files.
+If you find errors related with the `app.js` file then fix them and try again, but always remember to refresh the browser with `ctrl + F5` after updating a Javascript file.
 
 ### Google reCAPTCHA Script
 
@@ -494,7 +495,7 @@ Check that you are using the correct Approov site key:
 
 ### Shapes API Domain
 
-Check that you have added with the Approov CLI the `shapes.approov.io` API with web enabled.
+Check that you have added with the Approov CLI the `shapes.approov.io` API with web protection enabled.
 
 ```text
 approov api -list
@@ -502,7 +503,7 @@ approov api -list
 
 ### Approov reCAPTCHA Site Registration
 
-Check that you have added with the Approov CLI the correct info for the reCAPTCHA site key:
+Check that you have correctly registered your reCAPTCHA site with the Approov CLI:
 
 ```text
 approov web -recaptcha -list
@@ -518,7 +519,7 @@ Site Key: aaaaa12345
   Embed Result: true
 ```
 
-If the reCAPTCHA site key is correct, then the next step is to check the reCAPTCHA API key, but due to security reasons it cannot be listed with the Approov CLI, therefore to ensure its value is correct you need to register it again with Approov by following [this instructions](#register-google-recaptcha-v3-with-approov).
+If the reCAPTCHA site key is correct, then the next step is to check the reCAPTCHA API key. For security reasons the Approov CLI never outputs or returns the API key after it is set. To ensure the value is correct you can just re-register the site using [the same CLI command](#register-google-recaptcha-v3-with-approov) and it will overwrite the entries.
 
 ### Approov Live Metrics
 
@@ -528,11 +529,11 @@ Use the Approov CLI to see the [Live Metrics](https://approov.io/docs/latest/app
 approov metrics
 ```
 
-This will open a Grafana dashboard in your browser from where you can see detailed metrics.
+This will open your Approov Grafana metrics homepage. From there you can select the "Live Metrics" which include web-protection request metrics updated with the live activity every minute (max 2 mins for a request to be visible).
 
 ### Approov Web Protection Server Errors
 
-If something is wrong with your Google reCAPTCHA V3 integration, that prevents the Approov web protection server to complete the request, then an error response will be returned.
+If the Approov web protection server is unable to complete a request then it will respond with an error.
 
 See [here](https://approov.io/docs/latest/approov-usage-documentation/#troubleshooting-web-protection-errors) the complete list of possible errors that can be returned by the Approov web protection server.
 
@@ -540,7 +541,7 @@ If the error is not displayed in the web page you may need to open the browser d
 
 ### Debug the Approov Token
 
-The Approov CLI can check the approov token validity and display the claims.
+The Approov CLI can check Approov token validity and display the claims.
 
 Open the browser developers tools and from the network tab grab the Approov token from the request header `Approov-Token` and then check it with:
 
@@ -568,7 +569,7 @@ Example of the `embed` claim present in an Approov token:
 }
 ```
 
-> **NOTE:** The output of the Approov CLI is not formatted as the above one.
+> **NOTE:** The output of the Approov CLI is not formatted as above.
 
 [TOC](#toc-table-of-contents)
 
@@ -577,35 +578,24 @@ Example of the `embed` claim present in an Approov token:
 
 This quick start guide has taken you through the steps of adding Google reCAPTCHA V3 into Approov in the shapes demonstration web app.
 
-You can follow exactly the same steps to add Approov with Google reCAPTCHA V3 into your own web app.
+You can follow the same approach to add Approov with Google reCAPTCHA V3 into your own web app.
 
 ### API Domains
 
-Remember you need to [add](https://approov.io/docs/latest/approov-usage-documentation/#enable-web-protection-for-an-api) all of the API domains that you wish to protect with Google reCAPTCHA V3 in an Approov token without forgetting to enable the web protection with the `-allowWeb` flag.
+Remember the `-allowWeb` flag whenever you [register](https://approov.io/docs/latest/approov-usage-documentation/#enable-web-protection-for-an-api) an API with Approov that will be accessed from a web-app.
 
 ### Changing Your API Backend
 
 The Shapes example app uses the API endpoint `https://shapes.approov.io/v2/shapes` hosted on Approov's servers and you can see the code for it in this [Github repo](https://github.com/approov/quickstart-nodejs-koa_shapes-api).
 
-If you want to integrate Approov into your own web app you will need to [integrate](https://approov.io/docs/latest/approov-usage-documentation/#backend-integration) an Approov token check on its backend.
+If you want to integrate Approov into your own web app you will need to [integrate](https://approov.io/docs/latest/approov-usage-documentation/#backend-integration) an Approov token check in the backend. Since the Approov token is simply a standard [JWT](https://en.wikipedia.org/wiki/JSON_Web_Token) this is usually straightforward.
 
-Since the Approov token is simply a standard [JWT](https://en.wikipedia.org/wiki/JSON_Web_Token) this is usually straightforward.
-
-Check this [Backend integration](https://approov.io/docs/latest/approov-integration-examples/backend-api/) examples that provide a detailed walk-through for specific programming languages and frameworks.
+Check the [Backend integration](https://approov.io/docs/latest/approov-integration-examples/backend-api/) examples that provide a detailed walk-through for specific programming languages and frameworks.
 
 [TOC](#toc-table-of-contents)
 
 
-## SECURITY HEADERS
-
-If your app is not using any Security Headers we strongly recommend you to take the time to add them.
-
-You can check how your web app ranks in terms of security headers [here](https://securityheaders.com).
-
-
-### Content Security Policy
-
-If your web app is not using yet the [Content Security Policy](https://content-security-policy.com/) header we strongly recommend you to add one.
+## CONTENT SECURITY POLICY
 
 In the `content-src` policy of your current web app you will need to add the domains for Approov:
 

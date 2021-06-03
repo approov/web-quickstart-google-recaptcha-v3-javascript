@@ -6,7 +6,7 @@ window.addEventListener('load', (event) => {
 const API_VERSION = "v2"
 const API_DOMAIN = "shapes.approov.io"
 const API_BASE_URL = "https://" + API_DOMAIN
-const APPROOV_ATTESTER_URL = 'https://web-1.approovr.io/attest'
+const APPROOV_WEB_PROTECT_URL = 'https://web-1.approovr.io/attest'
 
 // Check the Dockerfile to see how place holders are replaced during the
 // Docker image build.
@@ -24,7 +24,7 @@ function fetchApproovToken(recaptchaToken) {
   params.append('recaptcha-site-key', RECAPTCHA_SITE_KEY)
   params.append('recaptcha-token', recaptchaToken)
 
-  return fetch(APPROOV_ATTESTER_URL, {
+  return fetch(APPROOV_WEB_PROTECT_URL, {
       method: 'POST',
       body: params
     })
@@ -111,6 +111,7 @@ function hideFromScreen() {
   document.getElementById('confused').classList.add("hidden");
   document.getElementById('hello').classList.add("hidden");
   document.getElementById('shape').className = "hidden"
+  document.getElementById('success').className = "hidden"
   document.getElementById('spinner').classList.remove("hidden")
 }
 
