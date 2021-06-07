@@ -1,14 +1,10 @@
 # Approov Web QuickStart: Google reCAPTCHA V3 - Javascript
 
-[Approov](https://approov.io) is an API security solution used to verify that requests received by your API services originate from trusted versions of your apps.
+[Approov](https://approov.io) is an API security solution used to verify that requests received by your API services originate from trusted versions of your apps. The core Approov product is targeted at mobile apps, however, we provide several integrations with 3rd party web protection solutions so that a single back-end Approov check can be used to authorize API access. This quickstart shows how to use the integration with Google reCAPTCHA v3 to add Approov tokens to your API calls.
 
-This quickstart is written specifically for web apps making API calls that you wish to protect with the integration of Google reCAPTCHA V3 web protection into the Approov token.
+Note that, Google reCAPTCHA V3 web protection is not as strong as [Approov mobile app attestation](https://approov.io/product), however, for APIs that are used by both the mobile and web channels, a single check to grant access, simplifies the overall implementation of authorization decisions. Approov's integration with Google reCAPTCHA requires that the backed first check that an Approov token is present and that it is correctly signed. Subsequently, the token claims can be read to differentiate between requests coming from the mobile or web channels and to apply any associated restrictions. If required, the full response from the reCAPTHCA check can be embedded in the Approov token to be used by that logic.
 
-The Google reCAPTCHA V3 web protection is not as strong as the [Approov mobile app attestation](https://approov.io/product) service, but the integration within the Approov token enables the same simple backend token check for both the Approov mobile app attestation and Google reCAPTCHA V3 web protection. After checking the Approov token validity its claims can be used to differentiate between requests protected by the Approov mobile app attestation or by the web protection and react differently when that is necessary. For example, depending on the sensitivity of the data being provided by the endpoint.
-
-The quickstart is agnostic of any web framework, because the simple Javascript functions it relies on are easily ported to any web framework.
-
-This quickstart provides a step-by-step example of integrating Google reCAPTCHA V3 into an Approov token on a web app using a simple Shapes example that shows a geometric shape based on a request to an API backend that can be protected with Approov.
+This quickstart provides a step-by-step guide to integrating Google reCAPTCHA V3 with Approov in a web app using a simple demo API backend for obtaining a random shape. The integration uses plain Javascript without using any libraries or SDKs. As such, you should be able to use it directly or easily port it to your preferred web framework or library.
 
 If you are looking for another Approov integration you can check our list of [quickstarts](https://approov.io/docs/latest/approov-integration-examples/backend-api/), and if you don't find what you are looking for, then please let us know [here](https://approov.io/contact).
 
@@ -30,9 +26,10 @@ If you are looking for another Approov integration you can check our list of [qu
 
 ## WHAT YOU WILL NEED
 
-* Access to a trial or paid Approov account and be [registered](https://g.co/recaptcha/v3) with Google Recaptcha V3
+* Access to a trial or paid Approov account
+* Be [registered](https://g.co/recaptcha/v3) with Google Recaptcha V3
 * The `approov` command line tool [installed](https://approov.io/docs/latest/approov-installation/) with access to your account
-* A web server or Docker installed.
+* A web server or Docker installed
 * The contents of the folder containing this README
 
 [TOC](#toc-table-of-contents)
@@ -40,7 +37,7 @@ If you are looking for another Approov integration you can check our list of [qu
 
 ## WHAT YOU WILL LEARN
 
-* How to integrate Google reCAPTCHA V3 into Approov tokens on a real web app in a step by step fashion
+* How to integrate Google reCAPTCHA V3 with Approov on a real web app in a step by step fashion
 * How to setup your web app to get valid Approov Google reCAPTCHA V3 tokens
 * A solid understanding of how to integrate Google reCAPTCHA V3 with Approov into your own web app
 * Some pointers to other Approov features
@@ -50,7 +47,7 @@ If you are looking for another Approov integration you can check our list of [qu
 
 ## HOW IT WORKS?
 
-This is a brief overview of how the Approov cloud service and Google reCAPTCHA V3 fit together. For a complete overview of how frontend and backend fit together with the Approov cloud service we recommend the [Approov overview](https://approov.io/product) page on our website.
+This is a brief overview of how the Approov cloud service and Google reCAPTCHA V3 fit together. For a complete overview of how the frontend and backend work with the Approov cloud service, we recommend the [Approov overview](https://approov.io/product) page on our website.
 
 ### Google reCAPTCHA V3
 
@@ -63,7 +60,7 @@ Each API request made by the web app is handled such that:
 * The Approov token returned from the Approov web protection request is added as an header to the API request
 * The API request is made as usual by the web app
 
-The API backend will be the one deciding to allow or deny the action the user initiates from the web app. Never put logic in the web app itself to decide when the user is allowed or not to perform the action, because it can be easily bypassed and then the API will be left vulnerable.
+The API backend, is always responsible for making the decision to accept or deny requests. This decision is never made by the client. In all flows using Approov, access is only granted if a valid Approov token is included with the request; subsequent checks may further interrogate the contents of the Approov token and also check other credentials, such as user authorization.
 
 ### Approov Cloud Service
 
