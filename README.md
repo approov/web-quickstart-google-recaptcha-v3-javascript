@@ -2,7 +2,7 @@
 
 [Approov](https://approov.io) is an API security solution used to verify that requests received by your API services originate from trusted versions of your apps. The core Approov product is targeted at mobile apps, however, we provide several integrations with 3rd party web protection solutions so that a single back-end Approov check can be used to authorize API access. This quickstart shows how to use the integration with Google reCAPTCHA v3 to add Approov tokens to your API calls.
 
-Note that, Google reCAPTCHA V3 web protection is not as strong as [Approov mobile app attestation](https://approov.io/product), however, for APIs that are used by both the mobile and web channels, a single check to grant access, simplifies the overall implementation of authorization decisions. Approov's integration with Google reCAPTCHA requires that the backed first check that an Approov token is present and that it is correctly signed. Subsequently, the token claims can be read to differentiate between requests coming from the mobile or web channels and to apply any associated restrictions. If required, the full response from the reCAPTHCA check can be embedded in the Approov token to be used by that logic.
+Note that, Google reCAPTCHA V3 web protection is not as strong as [Approov mobile app attestation](https://approov.io/product), however, for APIs that are used by both the mobile and web channels, a single check to grant access, simplifies the overall implementation of authorization decisions. Approov's integration with Google reCAPTCHA requires that the backend first check that an Approov token is present and that it is correctly signed. Subsequently, the token claims can be read to differentiate between requests coming from the mobile or web channels and to apply any associated restrictions. If required, the full response from the reCAPTHCA check can be embedded in the Approov token to be used by that logic.
 
 This quickstart provides a step-by-step guide to integrating Google reCAPTCHA V3 with Approov in a web app using a simple demo API backend for obtaining a random shape. The integration uses plain Javascript without using any libraries or SDKs. As such, you should be able to use it directly or easily port it to your preferred web framework or library.
 
@@ -104,8 +104,7 @@ python3 -m http.server
 If you have NodeJS installed you can do:
 
 ```
-cd shapes-app
-npm install http-server -g
+cd shapes-appnpm install http-server -g
 http-server --port 8000
 ```
 
@@ -228,7 +227,7 @@ The additions can be summarised as follows:
 * The `g-recaptcha` css class is required so that the Google reCAPTCHA SDK can identify the target element
 * The `data-sitekey` attribute is used to identify the site subscription to the Google reCAPTCHA servers
 * The `data-callback` attribute registers the callback function to receive the Google reCAPTACHA token
-* The `data-action` attribute registers the action identifier with the Google reCAPTACHA token which can be verified once the token is checked by the API or Approov backend
+* The `data-action` attribute registers the action identifier with the Google reCAPTCHA token which can be verified once the token is checked by the API or Approov backend
 
 Now that we have made the Google reCAPTCHA script trigger off the click events in the `HELLO` and `SHAPE` buttons we need to remove the listeners for the `click` event in `app.js`. We also used `fetchHello` and `fetchShape` as the callbacks to receive the reCAPTCHA token, so we will also need to change them to handle the new parameter. The next section will show how to do it.
 
@@ -379,7 +378,7 @@ If your site key and API key were `aaaaa12345` and `bbbbb12345` respectively the
 approov web -recaptcha -add aaaaa12345 -secret bbbbb12345 -embedResult
 ```
 
-When the Google reCAPTCHA token is passed to an Approov web-protection server for verification it, in turn, calls out to the Google reCAPTCHA servers before performing its checks on the result. When the reCAPTCHA site is registered using the CLI, the -embedResult flag is used to [add](https://approov.io/docs/latest/approov-usage-documentation/#approov-embed-token-claim-for-recaptcha) the full response from Google reCAPTCHA servers in the generated Approov token. In this quickstart we are adding it for information and debug proposes only.
+When the Google reCAPTCHA token is passed to an Approov web-protection server for verification it, in turn, calls out to the Google reCAPTCHA servers before performing its checks on the result. When the reCAPTCHA site is registered using the CLI, the `-embedResult` flag is used to [add](https://approov.io/docs/latest/approov-usage-documentation/#approov-embed-token-claim-for-recaptcha) the full response from Google reCAPTCHA servers in the generated Approov token. In this quickstart we are adding it for information and debug proposes only.
 
 ### Replace the Code Placeholders
 
@@ -475,13 +474,13 @@ If you find errors related with the `app.js` file then fix them and try again, b
 
 In the `shapes-app/unprotected/index.html` file check that you are correctly:
 
-* loading the Google reCPATCHA script after the closing `</body>` tag.
+* loading the Google reCAPTCHA script after the closing `</body>` tag.
 * adding the required attributes to the `<button ...>` HTML tag
 
 ### Google reCAPTCHA Site key
 
 Check that you are using the correct reCAPTCHA site key in `index.html` and `app.js` files:
-* the placeholder `RECAPTCHA_SITE_KEY` has been replaced
+* the placeholder `___RECAPTCHA_SITE_KEY___` has been replaced
 * the site key doesn't have a typo
 
 ### Approov Site Key
