@@ -146,9 +146,9 @@ Now press the `SHAPE` button and you will see this:
 
 This contacts `https://shapes.approov.io/v1/shapes` to get a random shape.
 
-In a real world scenario the shapes endpoint is an API endpoint already in use by your mobile app that now also needs to be used by your web app, or you are already using the Google reCAPTCHA V3 token to protect this API endpoint when the requests are from your web app and using Approov when they originate from the mobile app.
+Although the Shapes API is very simple, 2 end-points, with some code in a web app to control presentation, it is sufficient to demonstrate the required changes. The starting point in a real world scenario is the same. An API, probably using Approov to protect the mobile channel, and either a new requirement to enable access from the web or a desire to simplify the existing access that uses Google reCAPTCHA V3 to protect against scripts and bots. The code changes below assume the former and take you through the steps to add both reCAPTCHA and Approov to the Shapes web app.
 
-To simulate the web app working with an API enpoint protected with Approov tokens edit `shapes-app/unprotected/assets/js/app.js` and change the `API_VERSION` to `v2`, like this:
+First, to simulate the web app working with an API enpoint protected with Approov tokens edit `shapes-app/unprotected/assets/js/app.js` and change the `API_VERSION` to `v2`, like this:
 
 ```js
 const API_VERSION = "v2"
@@ -160,9 +160,9 @@ Now save the file and in your browser do a hard refresh with `ctrl + F5`, then h
   <img src="/readme-images/unprotected-v2-shape-page.png" width="480" title="Shapes unprotected web app V2 shape page">
 </p>
 
-It gets the status code 400 (`Bad Request`) because this endpoint is protected with an Approov reCAPTCHA V3 token.
+It gets the status code 400 (Bad Request) because this endpoint is protected by Approov.
 
-Next, you will add Google reCAPTCHA V3 token with Approov into the web app so that it can obtain valid Approov tokens and get shapes.
+The changes below will add the required Approov token to the API request by first issuing a Google reCAPTCHA V3 check and then exchanging the returned reCAPTCHA token for an Approov token using the Approov Google reCAPTCHA integration.
 
 [TOC](#toc-table-of-contents)
 
@@ -230,7 +230,7 @@ The additions can be summarised as follows:
 * The `data-callback` attribute registers the callback function to receive the Google reCAPTACHA token
 * The `data-action` attribute registers the action identifier with the Google reCAPTACHA token which can be verified once the token is checked by the API or Approov backend
 
-Now that we have made the Google reCAPTCHA script as the one handling the click events in the `HELLO` and `SHAPE` buttons we need to remove their current listeners for the `click` event in `app.js`. We also named the `fetchHello()` and `fetchShape()` as the callbacks to receive the reCAPTCHA token, therefore we will need to update them in `app.js` to handle the new parameter. The next section will show how to do it.
+Now that we have made the Google reCAPTCHA script trigger off the click events in the `HELLO` and `SHAPE` buttons we need to remove the listeners for the `click` event in `app.js`. We also used `fetchHello` and `fetchShape` as the callbacks to receive the reCAPTCHA token, so we will also need to change them to handle the new parameter. The next section will show how to do it.
 
 #### Javascript changes to implement Approov with reCAPTCHA
 
@@ -242,11 +242,11 @@ You can easily compare the changes you need to make with this command:
 git diff --no-index shapes-app/unprotected/assets/js/app.js shapes-app/approov-recaptcha-protected/assets/js/app.js
 ```
 
-As we can see the necessary Javascript code to implement Approov in a web app app is simple and short.
+As we can see, the necessary Javascript code to implement Approov in a web app app is simple and short.
 
 Let's start to implement Google reCAPTCHA V3 with Approov in the Shapes unprotected app...
 
-Modify the file `shapes-app/unprotected/assets/js/app.js` to remove from the `load` event listener the `HELLO` and `SAHPE` buttons click handlers:
+Modify the file `shapes-app/unprotected/assets/js/app.js` to remove from the `load` event listener the `HELLO` and `SHAPE` buttons click handlers:
 
 ```js
 // After removing the click handlers the code should look like this:
@@ -298,7 +298,7 @@ function fetchApproovToken(recaptchaToken) {
 
 To fetch an Approov token we need a reCAPTCHA token which is passed as an argument to the fetchHello and fetchShape callbacks.
 
-For example, when the user clicks in the `SHAPE` button the event will be first handled by the the included Google reCAPCTHA script, that will then callback the function `fetchShape(recaptchaToken)` and pass the reCAPTCHA token as its first argument. The reCAPTCHA token needs to be passed further down to `makeApiRequest(path, recaptchaToken)`, that then calls to `addRequestHeaders(recaptchaToken)` that by its turn calls to `fetchApproovToken(recaptchaToken)`.
+For example, when the user clicks the `SHAPE` button, the event will be handled by the Google reCAPCTHA script. If a reCAPTCHA token is obtained then it will be passed to the callback function, `fetchShape`. We need to ensure that the reCAPTCHA token makes it into the `fetchApproovToken` call and we do that by passing it through the intervening functions: `makeApiRequest` and `addRequestHeaders`.
 
 Edit the file `shapes-app/unprotected/assets/js/app.js` to include the modified code for the following functions:
 
@@ -348,9 +348,9 @@ function fetchShape(recaptchaToken) {
 }
 ```
 
-Note that only minor changes to the handling of the `recaptchaToken` are required. To switch to using an Approov token in the code for your website, we would expect the same small changes at each point you construct requests that include a reCAPTCHA token. Depending on how your API calls are constructed, you may be able to isolate the changes to a single point.
+Note that the switch from the reCAPTCHA flow to the Approov flow requires only minor changes to the handling of the `recaptchaToken`. We would expect the same small changes to be required in your website at each point you construct requests that include a reCAPTCHA token. Depending on how your API calls are constructed, you may be able to isolate the changes to a single point.
 
-Before you can run the code it's necessary to obtain the values for the placeholders, and you will learn how to in the next section.
+Before you can run the code it's necessary to obtain the values for the placeholders, and you will learn how to do that in the next section.
 
 [TOC](#toc-table-of-contents)
 
@@ -369,11 +369,11 @@ approov api -add shapes.approov.io -allowWeb
 
 ### Register Google reCAPTCHA V3 with Approov
 
-To [configure](https://approov.io/docs/latest/approov-usage-documentation/#configure-approov-with-a-recaptcha-site) Approov with a Google reCAPTCHA V3 you need to [register here](http://www.google.com/recaptcha/admin) to be able to start using their service.
+To [configure](https://approov.io/docs/latest/approov-usage-documentation/#configure-approov-with-a-recaptcha-site) Approov with a Google reCAPTCHA V3 site you must first [register](http://www.google.com/recaptcha/admin) with the reCAPTCHA service.
 
-From the [Google reCAPTCHA Console](https://g.co/recaptcha/v3) you can add a website and obtain the site key and API key necessary to use the reCAPTCHA service.
+From the [Google reCAPTCHA Console](https://g.co/recaptcha/v3) you can add a site and then copy the site key and the API key necessary to use the reCAPTCHA service.
 
-Assuming that your site key is `aaaaa12345`  and the API key is `bbbbb12345` then your command to register reCAPTCHA V3 with Approov should look like this:
+If your site key and API key were `aaaaa12345` and `bbbbb12345` respectively then the command to register it with Approov would look like this:
 
 ```text
 approov web -recaptcha -add aaaaa12345 -secret bbbbb12345 -embedResult
@@ -606,7 +606,7 @@ Google reCAPTCHA V3 works with an `iframe` therefore you need to allow it with:
 frame-src https://www.google.com/recaptcha/api2/;
 ```
 
-Finally, add to your `script-src` policy the script for the Google Recaptcha V3 loaded in the `index.html` file and the ones it dynamically loads:
+Finally, add the static and dynamic Google Recaptcha V3 scripts to your script-src policy:
 
 ```text
 script-src 'self' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/;
