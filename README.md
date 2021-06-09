@@ -292,6 +292,7 @@ function fetchApproovToken(recaptchaToken) {
       return response.text() // return the token on success
     })
 }
+
 // function addRequestHeaders() {...}
 ```
 
