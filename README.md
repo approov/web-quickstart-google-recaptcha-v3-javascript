@@ -4,7 +4,7 @@
 
 [Google reCAPTCHA](https://developers.google.com/recaptcha/) is a popular service for determining if a browser is being operated by a human. A browser first retrieves a token from the reCAPTCHA API which is then passed to the protected API as part of a request. A query, from the protected API, obtains the full set of results associated with the token and uses this to determine whether to accept or reject its request.
 
-Note that, Google reCAPTCHA V3 web protection does not solve the same issue as [Approov mobile app attestation](https://approov.io/product)which provides a very strong indication that a request can be trusted. However, for APIs that are used by both the mobile and web channels, a single check to grant access, simplifies the overall access control implementation. Approov's integration with Google reCAPTCHA requires that the backend first check that an Approov token is present and that it is correctly signed. Subsequently, the token claims can be read to differentiate between requests coming from the mobile or web channels and to apply any associated restrictions. If required, the full response from the reCAPTHCA check can be embedded in the Approov token to be used by that logic. We still recommend that you restrict critical API endpoints to only work from the Mobile App.
+Note that, Google reCAPTCHA V3 web protection does not solve the same issue as [Approov mobile app attestation](https://approov.io/product) which provides a very strong indication that a request can be trusted. However, for APIs that are used by both the mobile and web channels, a single check to grant access, simplifies the overall access control implementation. Approov's integration with Google reCAPTCHA requires that the backend first check that an Approov token is present and that it is correctly signed. Subsequently, the token claims can be read to differentiate between requests coming from the mobile or web channels and to apply any associated restrictions. If required, the full response from the reCAPTHCA check can be embedded in the Approov token to be used by that logic. We still recommend that you restrict critical API endpoints to only work from the Mobile App.
 
 This quickstart provides a step-by-step guide to integrating Google reCAPTCHA V3 with Approov in a web app using a simple demo API backend for obtaining a random shape. The integration uses plain Javascript without using any libraries or SDKs except those providing the reCAPTCHA integration. As such, you should be able to use it directly or easily port it to your preferred web framework or library.
 
@@ -359,7 +359,7 @@ approov api -add shapes.approov.io -allowWeb
 
 ### Register Google reCAPTCHA V3 with Approov
 
-To [configure](https://approov.io/docs/latest/approov-usage-documentation/#configure-approov-with-a-recaptcha-site) Approov with a Google reCAPTCHA V3 site you must first [register](http://www.google.com/recaptcha/admin) with the reCAPTCHA service.
+To [configure](https://approov.io/docs/latest/approov-web-protection-integration/#configure-approov-with-a-recaptcha-site) Approov with a Google reCAPTCHA V3 site you must first [register](http://www.google.com/recaptcha/admin) with the reCAPTCHA service.
 
 From the [Google reCAPTCHA Console](https://g.co/recaptcha/v3) you can add a site and then copy the site key and the API key necessary to use the reCAPTCHA service.
 
@@ -369,7 +369,7 @@ If your site key and API key were `aaaaa12345` and `bbbbb12345` respectively the
 approov web -recaptcha -add aaaaa12345 -secret bbbbb12345
 ```
 
-When the Google reCAPTCHA token is passed to an Approov web-protection server for verification it, in turn, calls out to the Google reCAPTCHA servers before performing its checks on the result. The default check simply ensures that the result passes and issues a valid Approov token in that case. Further command line options can be used to control how Approov handles reCAPTCHA web protection, see the [docs](https://approov.io/docs/latest/approov-usage-documentation/#configure-approov-with-a-recaptcha-site) for details. Specifically, for v3 you should probably use the `-minScore` flag to specify an acceptable minimum score that is safe to apply across all your endpoints.
+When the Google reCAPTCHA token is passed to an Approov web-protection server for verification it, in turn, calls out to the Google reCAPTCHA servers before performing its checks on the result. The default check simply ensures that the result passes and issues a valid Approov token in that case. Further command line options can be used to control how Approov handles reCAPTCHA web protection, see the [docs](https://approov.io/docs/latest/approov-web-protection-integration/#configure-approov-with-a-recaptcha-site) for details. Specifically, for v3 you should probably use the `-minScore` flag to specify an acceptable minimum score that is safe to apply across all your endpoints.
 
 ### Replace the Code Placeholders
 
@@ -520,7 +520,7 @@ This will open your Approov Grafana metrics homepage. From there you can select 
 
 If the Approov web protection server is unable to complete a request then it will respond with an error.
 
-See [here](https://approov.io/docs/latest/approov-usage-documentation/#troubleshooting-web-protection-errors) the complete list of possible errors that can be returned by the Approov web protection server.
+See [here](https://approov.io/docs/latest/approov-web-protection-integration/#troubleshooting-web-protection-errors) the complete list of possible errors that can be returned by the Approov web protection server.
 
 If the error is not displayed in the web page you may need to open the browser developer tools and inspect the json response payload for the request made to the Approov web protection server.
 
@@ -534,7 +534,7 @@ Open the browser developers tools and from the network tab grab the Approov toke
 approov token -check <approov-token-here>
 ```
 
-In the output of the above command look for the [embed](https://approov.io/docs/latest/approov-usage-documentation/#approov-embed-token-claim-for-recaptcha) claim that contains the response details for the Google reCAPTCHA V3 token.
+In the output of the above command look for the [embed](https://approov.io/docs/latest/approov-web-protection-integration/#approov-embed-token-claim-for-recaptcha) claim that contains the response details for the Google reCAPTCHA V3 token.
 
 Example of an Approov web protection token containing an `embed` claim with partial reCAPTCHA results:
 
@@ -566,7 +566,7 @@ You can follow the same approach to add Approov with Google reCAPTCHA V3 into yo
 
 ### API Domains
 
-Remember to do an audit of your API to check which end-points should be enabled for web access. When necessary, extend the backend token check to differentiate between mobile app and web app tokens and use that to restrict the access to more sensitive end-points. Once the backend is ready, enable the Approov web protection by adding the `-allowWeb` flag whenever you [register or re-register](https://approov.io/docs/latest/approov-usage-documentation/#enable-web-protection-for-an-api) an API with the Approov CLI.
+Remember to do an audit of your API to check which end-points should be enabled for web access. When necessary, extend the backend token check to differentiate between mobile app and web app tokens and use that to restrict the access to more sensitive end-points. Once the backend is ready, enable the Approov web protection by adding the `-allowWeb` flag whenever you [register or re-register](https://approov.io/docs/latest/approov-web-protection-integration/#enable-web-protection-for-an-api) an API with the Approov CLI.
 
 ### Changing Your API Backend
 
@@ -618,7 +618,6 @@ If you wish to explore the Approov solution in more depth, then why not try one 
   * [Manage Devices](https://approov.io/docs/latest/approov-usage-documentation/#managing-devices)
   * [Service Monitoring](https://approov.io/docs/latest/approov-usage-documentation/#service-monitoring)
   * [Automated Approov CLI Usage](https://approov.io/docs/latest/approov-usage-documentation/#automated-approov-cli-usage)
-  * [Offline Security Mode](https://approov.io/docs/latest/approov-usage-documentation/#offline-security-mode)
   * [SafetyNet Integration](https://approov.io/docs/latest/approov-usage-documentation/#google-safetynet-integration)
   * [Account Management](https://approov.io/docs/latest/approov-usage-documentation/#user-management)
 * [Approov Resources](https://approov.io/resource/)
