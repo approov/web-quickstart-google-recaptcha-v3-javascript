@@ -168,11 +168,8 @@
                   <div class="py-4 px-8 mt-0">
                     <button
                       id="hello-button"
-                      class="g-recaptcha button-transition bg-blue-500 active:bg-blue-600 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none sm:mr-2 mb-1"
+                      class="button-transition bg-blue-500 active:bg-blue-600 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none sm:mr-2 mb-1"
                       type="button"
-                      data-sitekey="___RECAPTCHA_SITE_KEY___"
-                      data-callback='fetchHello'
-                      data-action='submit'
                     >
                       Hello
                     </button>
@@ -181,11 +178,8 @@
                   <div class="py-4 px-8 mt-0">
                     <button
                       id="shape-button"
-                      class="g-recaptcha button-transition bg-blue-500 active:bg-blue-600 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none sm:mr-2 mb-1"
+                      class="button-transition bg-blue-500 active:bg-blue-600 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none sm:mr-2 mb-1"
                       type="button"
-                      data-sitekey="___RECAPTCHA_SITE_KEY___"
-                      data-callback='fetchShape'
-                      data-action='submit'
                     >
                       Shape
                     </button>
@@ -283,6 +277,7 @@
       </div>
     </footer>
   </body>
-  <script src="https://www.google.com/recaptcha/api.js"></script>
-  <script type="text/javascript" src="./assets/js/app.js"></script>
+  <script src="https://www.google.com/recaptcha/api.js?render=___RECAPTCHA_SITE_KEY___"></script>
+  <script type="module" src="./assets/js/approov.js"></script>
+  <script type="module" src="./assets/js/app.js"></script>
 </html>

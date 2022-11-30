@@ -1,62 +1,85 @@
+import { Approov, ApproovError, ApproovFetchError, ApproovServiceError, ApproovSessionError } from "./approov.js"
+
 window.addEventListener('load', (event) => {
   const navbar = document.getElementById('toggle-navbar')
   navbar.addEventListener('click', (event) => toggleNavbar('example-collapse-navbar'))
+
+  const helloButton = document.getElementById('hello-button')
+  helloButton.addEventListener('click', (event) => fetchHello())
+
+  const shapeButton = document.getElementById('shape-button')
+  shapeButton.addEventListener('click', (event) => fetchShape())
 })
 
 const API_VERSION = "v2"
 const API_DOMAIN = "shapes.approov.io"
 const API_BASE_URL = "https://" + API_DOMAIN
-const APPROOV_WEB_PROTECT_URL = 'https://web-1.approovr.io/attest'
+const API_KEY = "yXClypapWNHIifHUWmBIyPFAm"
+const APPROOV_ATTESTER_DOMAIN = 'web-1.approovr.io'
 
 // Check the Dockerfile to see how place holders are replaced during the
 // Docker image build.
 const APPROOV_SITE_KEY = '___APPROOV_SITE_KEY___'
 const RECAPTCHA_SITE_KEY = '___RECAPTCHA_SITE_KEY___'
 
-// The recaptcha token needs to be retrieved each time we want to make a
-// API request with an Approov Token.
-function fetchApproovToken(recaptchaToken) {
-  const params = new URLSearchParams()
-
-  // Add it like `example.com` not as `https://example.com`.
-  params.append('api', API_DOMAIN)
-  params.append('approov-site-key', APPROOV_SITE_KEY)
-  params.append('recaptcha-site-key', RECAPTCHA_SITE_KEY)
-  params.append('recaptcha-token', recaptchaToken)
-
-  return fetch(APPROOV_WEB_PROTECT_URL, {
-      method: 'POST',
-      body: params
-    })
-    .then(response => {
-      if (!response.ok) {
-        console.debug('Approov token fetch failed: ', response)
-        throw new Error('Failed to fetch an Approov Token') // reject with a throw on failure
-      }
-
-      return response.text() // return the token on success
-    })
+async function getRecaptchaV3Token() {
+  let rcTokenPromise = new Promise(function(resolve, reject) {
+    try {
+      grecaptcha.ready(function() {
+        grecaptcha.execute(RECAPTCHA_SITE_KEY, {action: 'submit'}).then(function(rcToken) {
+          console.log('rcToken: ' + JSON.stringify(rcToken))
+          resolve(rcToken)
+        });
+      });
+    } catch (error) {
+      reject(error)
+    }
+  })
+  return rcTokenPromise
 }
 
-function addRequestHeaders(recaptchaToken) {
-  return fetchApproovToken(recaptchaToken)
-    .then(approovToken => {
-      return new Headers({
-        'Accept': 'application/json',
-        'Approov-Token': approovToken
-      })
+async function fetchToken(api) {
+  try {
+    Approov.defaultAPI = api
+    let approovToken = await Approov.fetchToken(api, {})
+    return approovToken
+  } catch(error) {
+    console.log('fetch Approov token: ' + JSON.stringify(error))
+    await Approov.initializeSession({
+      approovHost: APPROOV_ATTESTER_DOMAIN,
+      approovSiteKey: APPROOV_SITE_KEY,
+      recaptchaSiteKey: RECAPTCHA_SITE_KEY,
     })
+    const recaptchaToken = await getRecaptchaV3Token()
+    let approovToken = await Approov.fetchToken(api, {recaptchaToken: recaptchaToken})
+    return approovToken
+  }
 }
 
-function makeApiRequest(path, recaptchaToken) {
+async function addRequestHeaders() {
+  let headers = new Headers({
+    'Accept': 'application/json', // fix the default being anything "*/*"
+    'Api-Key': API_KEY,
+  })
+  try {
+    let approovToken = await fetchToken(API_DOMAIN)
+    console.log('Approov token: ' + JSON.stringify(approovToken))
+    headers.append('Approov-Token', approovToken)
+  } catch(error) {
+    console.log(JSON.stringify(error))
+  }
+  return headers
+}
+
+function makeApiRequest(path) {
   hideFromScreen()
 
-  return addRequestHeaders(recaptchaToken)
+  return addRequestHeaders()
     .then(headers => fetch(API_BASE_URL + '/' + path, { headers: headers }))
 }
 
-function fetchHello(recaptchaToken) {
-  makeApiRequest(API_VERSION + '/hello', recaptchaToken)
+function fetchHello() {
+  makeApiRequest(API_VERSION + '/hello')
     .then(response => handleApiResponse(response))
     .then(data => {
       document.getElementById('start-app').classList.add("hidden")
@@ -65,8 +88,8 @@ function fetchHello(recaptchaToken) {
     .catch(error => handleApiError('Fetch from ' + API_VERSION + '/hello failed', error))
 }
 
-function fetchShape(recaptchaToken) {
-  makeApiRequest(API_VERSION + '/shapes', recaptchaToken)
+function fetchShape() {
+  makeApiRequest(API_VERSION + '/shapes')
     .then(response => handleApiResponse(response))
     .then(data => {
 
