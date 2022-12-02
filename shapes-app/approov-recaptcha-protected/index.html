@@ -277,7 +277,14 @@
       </div>
     </footer>
   </body>
-  <script src="https://www.google.com/recaptcha/api.js?render=___RECAPTCHA_SITE_KEY___"></script>
+  <!-- <script src="https://www.google.com/recaptcha/api.js?render=RECAPTCHA_SITE_KEY"></script> -->
+  <script type="module" src="/config.js"></script>
+  <script type='module'>
+    import { RECAPTCHA_SITE_KEY } from "/config.js"
+    let fpScript = document.createElement("script")
+    fpScript.src = "https://www.google.com/recaptcha/api.js?render=" + RECAPTCHA_SITE_KEY
+    document.body.appendChild(fpScript)
+  </script>
   <script type="module" src="./assets/js/approov.js"></script>
   <script type="module" src="./assets/js/app.js"></script>
 </html>

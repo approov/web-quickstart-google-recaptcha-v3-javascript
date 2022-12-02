@@ -165,30 +165,39 @@
               </div>
               <div class="mt-2 py-2 border-t border-gray-300">
                 <div class="flex flex-wrap justify-center">
-                  <div class="py-4 px-8 mt-0">
-                    <button
-                      id="hello-button"
-                      class="g-recaptcha bg-blue-500 active:bg-blue-600 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none sm:mr-2 mb-1"
-                      type="button"
-                      data-sitekey="___RECAPTCHA_SITE_KEY___"
-                      data-callback='fetchHello'
-                      data-action='submit'
-                    >
-                      Hello
-                    </button>
+                  <script type="module" src="/config.js"></script>
+                  <div id="hello-button-wrapper" class="py-4 px-8 mt-0">
+                    <script type='module'>
+                      import { RECAPTCHA_SITE_KEY } from "/config.js"
+                      let helloButton = `<button
+                          id="hello-button"
+                          class="g-recaptcha bg-blue-500 active:bg-blue-600 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none sm:mr-2 mb-1"
+                          type="button"
+                          data-sitekey="` + RECAPTCHA_SITE_KEY + `"
+                          data-callback='fetchHello'
+                          data-action='submit'
+                        >
+                          Hello
+                        </button>`
+                      document.getElementById("hello-button-wrapper").insertAdjacentHTML('beforeend', helloButton)
+                    </script>
                   </div>
 
-                  <div class="py-4 px-8 mt-0">
-                    <button
-                      id="shape-button"
-                      class="g-recaptcha bg-blue-500 active:bg-blue-600 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none sm:mr-2 mb-1"
-                      type="button"
-                      data-sitekey="___RECAPTCHA_SITE_KEY___"
-                      data-callback='fetchShape'
-                      data-action='submit'
-                    >
-                      Shape
-                    </button>
+                  <div id="shape-button-wrapper" class="py-4 px-8 mt-0">
+                    <script type='module'>
+                      import { RECAPTCHA_SITE_KEY } from "/config.js"
+                      let shapeButton = `<button
+                        id="shape-button"
+                        class="g-recaptcha bg-blue-500 active:bg-blue-600 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none sm:mr-2 mb-1"
+                        type="button"
+                        data-sitekey="` + RECAPTCHA_SITE_KEY + `"
+                        data-callback='fetchShape'
+                        data-action='submit'
+                      >
+                        Shape
+                      </button>`
+                      document.getElementById("shape-button-wrapper").insertAdjacentHTML('beforeend', shapeButton)
+                    </script>
                   </div>
                 </div>
               </div>
