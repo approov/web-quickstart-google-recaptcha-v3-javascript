@@ -1,4 +1,4 @@
-// See the Dockerfile for how place holders in config.js are replaced during the Docker image build.
+
 import { APPROOV_ATTESTER_DOMAIN, SHAPES_API_KEY, APPROOV_SITE_KEY, RECAPTCHA_SITE_KEY } from "/config.js"
 import { Approov, ApproovError, ApproovFetchError, ApproovServiceError, ApproovSessionError } from "./approov.js"
 
@@ -18,28 +18,25 @@ const API_DOMAIN = "shapes.approov.io"
 const API_BASE_URL = "https://" + API_DOMAIN
 
 async function getRecaptchaV3Token() {
-  let rcTokenPromise = new Promise(function(resolve, reject) {
+  let recaptchaTokenPromise = new Promise(function(resolve, reject) {
     try {
       grecaptcha.ready(function() {
-        grecaptcha.execute(RECAPTCHA_SITE_KEY, {action: 'submit'}).then(function(rcToken) {
-          console.log('rcToken: ' + JSON.stringify(rcToken))
-          resolve(rcToken)
+        grecaptcha.execute(RECAPTCHA_SITE_KEY, {action: 'submit'}).then(function(recaptchaToken) {
+          resolve(recaptchaToken)
         });
       });
     } catch (error) {
       reject(error)
     }
   })
-  return rcTokenPromise
+  return recaptchaTokenPromise
 }
 
 async function fetchApproovToken(api) {
   try {
-    Approov.defaultAPI = api
     let approovToken = await Approov.fetchToken(api, {})
     return approovToken
   } catch(error) {
-    console.log('fetch Approov token: ' + JSON.stringify(error))
     await Approov.initializeSession({
       approovHost: APPROOV_ATTESTER_DOMAIN,
       approovSiteKey: APPROOV_SITE_KEY,
@@ -58,7 +55,6 @@ async function addRequestHeaders() {
   })
   try {
     let approovToken = await fetchApproovToken(API_DOMAIN)
-    console.log('Approov token: ' + JSON.stringify(approovToken))
     headers.append('Approov-Token', approovToken)
   } catch(error) {
     console.log(JSON.stringify(error))
