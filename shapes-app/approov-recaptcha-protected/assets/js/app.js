@@ -34,17 +34,25 @@ async function getRecaptchaV3Token() {
 
 async function fetchApproovToken(api) {
   try {
+    // Try to fetch an Approov token
     let approovToken = await Approov.fetchToken(api, {})
     return approovToken
-  } catch(error) {
-    await Approov.initializeSession({
-      approovHost: APPROOV_ATTESTER_DOMAIN,
-      approovSiteKey: APPROOV_SITE_KEY,
-      recaptchaSiteKey: RECAPTCHA_SITE_KEY,
-    })
-    const recaptchaToken = await getRecaptchaV3Token()
-    let approovToken = await Approov.fetchToken(api, {recaptchaToken: recaptchaToken})
-    return approovToken
+  } catch (error) {
+    if (error instanceof ApproovSessionError) {
+      // If Approov has not been initialized or the Approov session has expired, initialize and start a new one
+      await Approov.initializeSession({
+        approovHost: APPROOV_ATTESTER_DOMAIN,
+        approovSiteKey: APPROOV_SITE_KEY,
+        recaptchaSiteKey: RECAPTCHA_SITE_KEY,
+      })
+      // Get a fresh reCAPTCHA token
+      const recaptchaToken = await getRecaptchaV3Token()
+      // Fetch the Approov token
+      let approovToken = await Approov.fetchToken(api, {recaptchaToken: recaptchaToken})
+      return approovToken
+    } else {
+      throw error
+    }
   }
 }
 
@@ -56,7 +64,7 @@ async function addRequestHeaders() {
   try {
     let approovToken = await fetchApproovToken(API_DOMAIN)
     headers.append('Approov-Token', approovToken)
-  } catch(error) {
+  } catch (error) {
     console.log(JSON.stringify(error))
   }
   return headers
