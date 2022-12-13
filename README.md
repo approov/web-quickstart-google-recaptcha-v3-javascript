@@ -113,7 +113,7 @@ The Approov service setup steps require access to the [Approov CLI](https://appr
 
 ### ADDING API DOMAINS
 
-In order for the Approov service to provide Approov tokens for particular API domains it is necessary to inform Approov about these. Execute the following command:
+In order for the Approov service to provide Approov tokens for particular API domains it is necessary to inform Approov about these. Execute the following command to add and web-enable the domain, replacing `your.domain` with the name of your API domain that should be protected with Approov:
 
 ```
 approov api -add your.domain -allowWeb
@@ -121,13 +121,13 @@ approov api -add your.domain -allowWeb
 
 ### ADDING A RECAPTCHA SITE
 
-A reCAPTCHA site can be added by specifying valid site key and API key. The following command adds a subscription in the Rest-of-the-World (RoW) region leaving all other settings at their default values:
+A reCAPTCHA site can be added by specifying a valid site key and the associated API secret. The following command adds a site leaving all other settings at their default values:
 
 ```
-approov web -recaptcha -add your-reCAPTCHA-site-key
+approov web -recaptcha -add your-reCAPTCHA-site-key -secret your-reCAPTCHA-secret
 ```
 
-To change a subscription you simply add it again with all the properties required for the changed subscription. Each addition of the same browser token completely overwrites the previously stored entry.
+To change a site's properties you simply add it again with all the properties required for the changed subscription. Each addition of the same site key completely overwrites the previously stored entry.
 
 You are now set up to request and receive Approov tokens.
 
@@ -140,6 +140,44 @@ The Approov CLI can check Approov token validity and display the claims. Open th
 ```text
 approov token -check your-Approov-token
 ```
+
+## OTHER CONSIDERATIONS
+
+When adding Approov with reCAPTCHA into your own web app you may want to address some of the following points:
+
+### API Domains
+
+Remember to do an audit of your API to check which end-points should be enabled for web access. When necessary, extend the backend token check to differentiate between mobile app and web app tokens and use that to restrict the access to more sensitive end-points. Once the backend is ready, enable the Approov web protection by adding the `-allowWeb` flag whenever you [register or re-register](https://approov.io/docs/latest/approov-web-protection-integration/#enable-web-protection-for-an-api) an API with the Approov CLI.
+
+### Changing Your API Backend
+
+The Shapes example app uses the API endpoint `https://shapes.approov.io/v3/shapes` hosted on Approov's servers. You can find the code for it in this [Github repo](https://github.com/approov/quickstart-nodejs-koa_shapes-api).
+
+If you want to integrate Approov into your own web app you will need to [integrate](https://approov.io/docs/latest/approov-usage-documentation/#backend-integration) an Approov token check in the backend. Since the Approov token is simply a standard [JWT](https://en.wikipedia.org/wiki/JSON_Web_Token) this is usually straightforward.
+
+Check the [Backend API Quickstarts](https://approov.io/resource/quickstarts/#backend-api-quickstarts) examples that provide a detailed walk-through for specific programming languages and frameworks.
+
+### Content Security Policy
+
+In the `content-src` policy of your current web app you will need to add the domains for Approov:
+
+```text
+connect-src https://your-domains.com https://web-1.approovr.io/;
+```
+
+Google reCAPTCHA V3 works with an `iframe` therefore you need to allow it with:
+
+```text
+frame-src https://www.google.com/recaptcha/api2/;
+```
+
+Finally, add the static and dynamic Google Recaptcha V3 scripts to your script-src policy:
+
+```text
+script-src 'self' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/;
+```
+
+You can check the Content Security Policy for your site [here](https://csp-evaluator.withgoogle.com/) or testing it in conjunction with all the other security headers [here](https://securityheaders.com).
 
 ## FURTHER OPTIONS
 
