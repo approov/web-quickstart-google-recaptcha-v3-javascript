@@ -1,6 +1,6 @@
 # Shapes Example
 
-This quickstart is written specifically for web apps that you wish to protect with hCaptcha and Approov. It provides a step-by-step guide to integrating Google reCAPTCHA V3 with Approov in a web app using a simple shapes example that shows a geometric shape based on a request to a demo API backend. The integration uses plain Javascript without using any libraries or SDKs except those providing the reCAPTCHA integration. As such, you should be able to use it directly or easily port it to your preferred web framework or library.
+This quickstart is written specifically for web apps that you wish to protect with reCAPTCHA and Approov. It provides a step-by-step guide to integrating Google reCAPTCHA V3 with Approov in a web app using a simple shapes example that shows a geometric shape based on a request to a demo API backend. The integration uses plain Javascript without using any libraries or SDKs except those providing the reCAPTCHA integration. As such, you should be able to use it directly or easily port it to your preferred web framework or library.
 
 ## WHAT YOU WILL NEED
 
@@ -79,7 +79,7 @@ Now press the `SHAPE` button and you will see this:
 
 This contacts `https://shapes.approov.io/v1/shapes` to get a random shape.
 
-The subsequent steps of this guide take you through the steps to add both Fingerprint and Approov to the Shapes web app. If the Shapes web app were already making use of reCAPTCHA to bind browser sessions to known users, the necessary steps would be nearly identical.
+The subsequent steps of this guide take you through the steps to add both reCAPTCHA and Approov to the Shapes web app. If the Shapes web app were already making use of reCAPTCHA to bind browser sessions to known users, the necessary steps would be nearly identical.
 
 ## MODIFY THE WEB APP TO USE APPROOV WITH GOOGLE RECAPTCHA V3
 
